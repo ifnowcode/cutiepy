@@ -1,10 +1,3 @@
-#!/usr/bin/env python
-##############################################################################
-# <|:) Wizard
-# Licensed under the New BSD License
-# (http://www.freebsd.org/copyright/freebsd-license.html)
-# A image viewer. Require Pillow ( https://pypi.python.org/pypi/Pillow/ ).
-##############################################################################
 import tkinter as tk
 from tkinter import *
 from tkinter import filedialog, messagebox
@@ -181,12 +174,13 @@ class Cutie(Frame):
 
 
     @trace(1)
-    def __init__(self,showfile=False,log="Info",trace=0,inspector=True,debug=False):
+    def __init__(self, targets, showfile=False, inspector=True, debug=False):
       perftime = datetime.now()
       loginfo("Initializing Object")
       # https://www.mytecbits.com/internet/python/addition-and-subtraction-of-time
       #newtime = currtime + timedelta(seconds=self.interval)
       # TODO: make functions to set these break_on_error(True), etc. This is for diagnostics.py
+      self.targets = targets
       self.inspection_mode = inspector
       self.rawimg = None
       self.filtimg = None
@@ -386,7 +380,7 @@ class Cutie(Frame):
       super().__init__()
       # TODO: need to initialize then pack, my functions have caused this to be a mess and display window then the final window, for now ill just set here and allow that bug to clean this up at a later date
       self.initialize_app()
-      self.set_window_style(self.start_as,init=True)
+      self.set_window_style(self.start_as, init=True)
 
 
     def initialize_app(self):
@@ -397,7 +391,6 @@ class Cutie(Frame):
       self.filenamepathlbltext = StringVar()
       self.active = tk.PhotoImage(data=self.smiley_face_button_image_gif_b64)
       self.inactive = tk.PhotoImage(data=self.straight_face_button_image_gif_b64)
-      # TODO: change to yellow square smiley when active and the white straight face when not
       self.master.iconphoto(False, self.inactive)
       self.master.minsize(108,20) # (200,115) will resize image down to 64x64 if resize is True
       #self.master.wm_attributes('-type', 'dock')
@@ -486,7 +479,7 @@ class Cutie(Frame):
 
 
     @trace(3)
-    def initialize_window(self,show_pic_window=True):
+    def initialize_window(self, show_pic_window=True):
       loginfo("Initializing Main Window")
 
       #self.master.bind("<Motion>", self.on_motion) # see mouse movement
@@ -506,7 +499,7 @@ class Cutie(Frame):
         #self.initialize_carousel()
 
       if show_pic_window is True:
-        if len(sys.argv) > 1: # if an argument is provided see if it's a path or file
+        if len(self.targets): # if targest are provided see if it's a path or file
           if self.canvas is not None:
             # DONE: findout what time frequency after takes, 60 is to fast to be seconds. A: it's milliseconds
             self.canvas.after(100, self.process_command_line_arguments)
@@ -2684,9 +2677,9 @@ class Cutie(Frame):
       # DONE: FIX when selecting a drive like C:\ I get c:auvid_files\files.foo in my python image dir
       # TODO: do better command line parsing using ArgParse
       # TODO: use glob.glob and a command line option to get just a directory vs. a whole tree
-      loginfo("Command line is",sys.argv)
-      if len(sys.argv) == 2: # file or directory
-        arg = sys.argv[1]
+      loginfo("Command line is", sys.argv)
+      if len(self.targets) == 1: # file or directory
+        arg = self.targets[0]
         self.filenamepath = os.path.abspath(arg)
         self.root_directory = os.path.dirname(self.filenamepath)
         #self.get_file_path_info(self.filenamepath)
@@ -2701,8 +2694,8 @@ class Cutie(Frame):
             self.sources = self.ordered_sources
             self.open_file(self.filenamepath,append=True)
         else: loginfo("Error: Argument provided was not a valid path or filename ->",arg)
-      elif len(sys.argv) > 2: # user specified more then one file or directory
-        for arg in sys.argv[1:]:
+      elif len(self.targets) > 1: # user specified more then one file or directory
+        for arg in self.targets:
           if os.path.isdir(arg):
             pass
           elif os.path.isfile(arg):
@@ -3061,7 +3054,7 @@ class Cutie(Frame):
     def make_icons_from_image(self):
       # lets make a tidy subfolder with unique folders for each time so this doesn't get messy
       # TODO: use resize, thumbs don't do exact sizes they just fit into the specified size
-      path = self.module_path + "\\Icons\\" + str(uuid.uuid4()) + "\\"
+      path = self.module_path + "\\icons\\" + str(uuid.uuid4()) + "\\"
       if os.path.exists(path) is False:
         os.mkdir(path)
       self.make_icon_from_image(16,path,self.file_name)
@@ -3092,8 +3085,7 @@ class Cutie(Frame):
     def log(self,*args,**kwargs):
       info = get_stack_frame_info(backtrack=3) # 3, get_stack_frame_info -> log -> trace -> caller
       loginfo("Module Path",self.module_path)
-      path = f"{os.environ['_path_data']}\\logs\\cutiepy"
-      #path = self.module_path + "\\Logs"
+      path = self.module_path + "\\logs"
       loginfo("Log Path",path)
       if os.path.exists(path) is False:
         os.mkdir(path)
@@ -7554,14 +7546,44 @@ class Cutie(Frame):
 # main
 #
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-if __name__ == "__main__":
-  settracelevel(0)
-  setloglevel("Warn")
+def get_args(name, description):
+  parser = argparse.ArgumentParser(prog=name, description=description, formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+  parser.add_argument('targets', help="Files sources", nargs='*')
+  parser.add_argument('-l', '--loglevel', default="Warn", help="Set logging level.")
+  parser.add_argument('-t', '--tracelevel', default=0, help="Set trace level.")
+  switches = parser.parse_args()
+  args=vars(switches)
+  arguments = {'name': name, 'description': description}
+  for arg in args:
+    arguments[arg] = getattr(switches, arg)
+    if arguments[arg] == None:
+      del arguments[arg]
+  for key, value in arguments.items():
+    if type(value) is str:
+      if value.upper() == 'TRUE':
+        arguments[key] = True
+      if value.upper() == 'FALSE':
+        arguments[key] = False
+
+  return arguments, switches
+
+def main(name, description):
+  params, switches = get_args(name, description)
+  setloglevel(params['loglevel'])
+  settracelevel(int(params['tracelevel']))
+  if gettracelevel() > 0: logmainentry(name)
+  loginfo(params)
+
   try:
-    app = Cutie(showfile=False,log="Spew",trace=0,debug=False)
+    app = Cutie(params['targets'], showfile=False, inspector=True, debug=False)
     app.mainloop()
   except KeyboardInterrupt as e:
     pass
+
+  if gettracelevel() > 0: logmainexit(name)
+
+if __name__ == "__main__":
+  main("Cutie", "Python Image Viewer")
 
 #-------------------------------------------------------------------------------
 #
