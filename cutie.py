@@ -1077,7 +1077,6 @@ class Cutie(Frame):
       # TODO: change F5 to refresh and add a command to draw image info
       widget.bind('<F5>', self.on_draw_image_info)        # draw image info onto the image
 
-
       # DONE: + - zoom in out
       # **** TODO: shift values for transparency and un-shifted for zoom in/out
       widget.bind('=', self.on_zoom_in)       # increase entire window transparency
@@ -1085,7 +1084,6 @@ class Cutie(Frame):
 
       widget.bind('<Shift-plus>', self.on_increase_alpha)         # increase entire window transparency
       widget.bind('<Shift-underscore>', self.on_decrease_alpha)   # decrease entire window transparency
-
 
       widget.bind('<F6>', self.on_slate)
       widget.bind('<F7>', self.on_white)
@@ -1196,7 +1194,7 @@ class Cutie(Frame):
 
 
     @trace(3)
-    def set_wallpaper_from_image(self,image=None,print_info=True):
+    def set_wallpaper_from_image(self,image=None,print_info=False):
       # SetSysColor (winuser.h)
       # https://docs.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-setsyscolors?redirectedfrom=MSDN
       # https://stackoverflow.com/questions/847850/cross-platform-way-of-getting-temp-directory-in-python
@@ -1369,7 +1367,7 @@ class Cutie(Frame):
 
 
     @trace(3)
-    def crop(self,print_info=True):
+    def crop(self, print_info=False):
       # https://pillow.readthedocs.io/en/5.1.x/reference/Image.html
       loginfo("Cropping Image")
       box = self.rawimg.getbbox()
@@ -1394,7 +1392,7 @@ class Cutie(Frame):
 
     @trace(3)
     # development method for playing with different image generation methods
-    def generate_image(self,gen_program='1',print_info=True):
+    def generate_image(self,gen_program='1',print_info=False):
       self.close_images()
       image = None
       if gen_program == '1':
@@ -2839,7 +2837,7 @@ class Cutie(Frame):
     @trace(1)
     # display should only deal with images not files, it is abstracted to the image level
     # TODO: lock display and changes to the images from other methods while slide show is going
-    def display(self,image=None,resize=True,print_info=True):
+    def display(self,image=None,resize=True,print_info=False):
       """ Display the image with selected filters """
       # https://www.geeksforgeeks.org/python-pil-image-convert-method/
       # TODO: pri=0;sev=0; change cursor and block (busy circle)
@@ -2894,7 +2892,7 @@ class Cutie(Frame):
 
     @trace(3)
     def display_desktop(self):
-      self.set_wallpaper_from_image(self.effimg,print_info=True)
+      self.set_wallpaper_from_image(self.effimg,print_info=False)
 
 
     # https://www.codespeedy.com/get-the-basic-image-information-with-pillow-python/
@@ -3113,7 +3111,7 @@ class Cutie(Frame):
 
 
     @trace(3)
-    def open_file(self,file,append=False,print_info=True):
+    def open_file(self,file,append=False,print_info=False):
       self.statusinfolbl.config(text='')
       self.stauserrorlbl.config(text='')
       self.is_GIF_file = False
@@ -3139,7 +3137,7 @@ class Cutie(Frame):
 
 
     @trace(3)
-    def open_video_file(self,file,print_info=True):
+    def open_video_file(self,file,print_info=False):
       # TODO: close the capture when done
       assert file is not None, "File is " + str(file)
       self.close_video_file()
@@ -3272,7 +3270,7 @@ class Cutie(Frame):
     # https://www.codespeedy.com/get-the-basic-image-information-with-pillow-python/
     # https://pillow.readthedocs.io/en/5.2.x/reference/plugins.html#PIL.GifImagePlugin.GifImageFile.n_frames
     @trace(3)
-    def open_image_file(self,filename,print_info=True):
+    def open_image_file(self,filename,print_info=False):
       assert filename is not None, "filename is " + str(filename)
       try:
         if self.showfile is True:
@@ -4283,7 +4281,7 @@ class Cutie(Frame):
 
 
     @trace(3)
-    def prev_image(self,print_info=True):
+    def prev_image(self,print_info=False):
       loginfo("Image:", self.iimages, "Length is", len(self.images), "Repeat is", self.repeat)
       if self.iimages > 0:
         self.iimages = self.iimages - 1
@@ -4317,7 +4315,7 @@ class Cutie(Frame):
 
 
     @trace(3)
-    def next_image(self,print_info=True):
+    def next_image(self,print_info=False):
       loginfo("Image:",self.iimages, "Length is", len(self.images), "Repeat is", self.repeat)
       if self.iimages < len(self.images) - 1:
         self.iimages = self.iimages + 1
@@ -5025,7 +5023,7 @@ class Cutie(Frame):
 
 
     @trace(3)
-    def process_cv_frame(self,print_image=False):
+    def process_cv_frame(self, print_image=False, print_info=False):
       if self.vidcap is not None:
         loginfo("CV Frame",self.vidcap.get(self.eCap.CV_CAP_PROP_POS_FRAMES))
         ret_val, frame = self.vidcap.read()
@@ -5052,7 +5050,8 @@ class Cutie(Frame):
               # break
         if ret_val is True and frame is not None:
           # reduce to just the few items that really help eventually, for now I want to observe all for any changes
-          self.print_video_info(self.vidcap, changes_only=not self.debug) # so far just 'Current Timestamp' and 'Next Frame' changes
+          if print_info is True:
+            self.print_video_info(self.vidcap, changes_only=not self.debug) # so far just 'Current Timestamp' and 'Next Frame' changes
           #if self.mirror: frame = cv2.flip(frame, 1)
           # https://docs.opencv.org/master/d8/d01/group__imgproc__color__conversions.html
           # https://www.geeksforgeeks.org/python-opencv-cv2-cvtcolor-method/

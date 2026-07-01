@@ -3,9 +3,6 @@
 Cutie is a feature‑rich, Tkinter‑based image and video viewer that supports slideshows, filters, effects, GIF frame inspection, window geometry modes, transparency, desktop wallpaper integration, and a command console.
 It uses **Pillow**, **OpenCV**, and **Tkinter** to provide a highly interactive viewing environment.
 
->“A image viewer. Require Pillow…”
->“Initializing Shortcuts… Setting Keyboard Shortcuts.”
-
 This is highly experimental code currently. I am working on cleaning this up since it's a nice viewer that uses a directory tree (will display all images from selected folder on down). This was created for that reason and to explore Pillow and OpenCV. I don't believe I ever got the OpenCV functionality working but I'll dive back into that when time permits. The image viewing portion works well, the rest I'm not so sure, it has a lot of functionality due to Pillow and image generation exploration. If OpenCV is not needed here I'll remove it in future iterations.
 
 I created this readme from AI but will clean up as much as I can time permitting making sure all the info is accurate and useful.
